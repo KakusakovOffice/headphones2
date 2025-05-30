@@ -10,14 +10,14 @@ enum EqualizerMode {
     Vocal
 };
 
-std::string equalizer_mode_to_string(EqualizerMode equalizer_mode);
+std::wstring equalizer_mode_to_string(EqualizerMode equalizer_mode);
 
 class Headphones {
 public:
     Headphones(
-        std::string producer_name,
-        std::string model_name,
-        std::string price,
+        std::wstring producer_name,
+        std::wstring model_name,
+        std::wstring price,
         double volume,
         bool is_noise_canceling_enabled,
         bool is_microphone_enabled,
@@ -28,29 +28,29 @@ public:
     Headphones(const Headphones& headphones) = delete;
     Headphones& operator=(const Headphones& headphones) = delete;
 
-    std::string get_producer_name() const;
-    std::string get_model_name() const;
-    std::string get_price() const;
+    std::wstring get_producer_name() const;
+    std::wstring get_model_name() const;
+    std::wstring get_price() const;
     double get_volume() const;
     bool is_noise_canceling_enabled() const;
     bool is_microphone_enabled() const;
     EqualizerMode get_equalizer_mode() const;
 
-    void set_producer_name(std::string producer_name);
-    void set_model_name(std::string model_name);
-    void set_price(std::string price);
+    void set_producer_name(std::wstring producer_name);
+    void set_model_name(std::wstring model_name);
+    void set_price(std::wstring price);
     void set_volume(double volume);
     void toggle_noise_canceling();
     void toggle_microphone();
     void set_equalizer_mode(EqualizerMode equalizer_mode);
 private:
-    std::string m_producer_name;
-    std::string m_model_name;
-    std::string m_price;
+    std::wstring m_producer_name;
+    std::wstring m_model_name;
+    std::wstring m_price;
     double m_volume;
     bool m_is_noise_canceling_enabled;
     bool m_is_microphone_enabled;
     EqualizerMode m_equalizer_mode;
 };
 
-std::ostream& operator<<(std::ostream& os, const Headphones& headphones);
+std::wostream& operator<<(std::wostream& os, const Headphones& headphones);

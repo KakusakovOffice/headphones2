@@ -1,26 +1,26 @@
 #include "Headphones.hpp"
 
-std::string equalizer_mode_to_string(EqualizerMode equalizer_mode)
+std::wstring equalizer_mode_to_string(EqualizerMode equalizer_mode)
 {
     switch (equalizer_mode)
     {
     case Normal:
-        return "Обычный";
+        return L"Обычный";
     case Bass:
-        return "Низкие частоты";
+        return L"Низкие частоты";
     case Treble:
-        return "Высокие частоты";
+        return L"Высокие частоты";
     case Vocal:
-        return "Вокал";
+        return L"Вокал";
     default:
-        return "[Неизвестный режим эквалайзера]";
+        return L"[Неизвестный режим эквалайзера]";
     }
 }
 
 Headphones::Headphones(
-    std::string producer_name,
-    std::string model_name,
-    std::string price,
+    std::wstring producer_name,
+    std::wstring model_name,
+    std::wstring price,
     double volume,
     bool is_noise_canceling_enabled,
     bool is_microphone_enabled,
@@ -35,15 +35,15 @@ Headphones::Headphones(
     m_equalizer_mode(equalizer_mode)
 {}
 
-std::string Headphones::get_producer_name() const
+std::wstring Headphones::get_producer_name() const
 {
     return m_producer_name;
 }
-std::string Headphones::get_model_name() const
+std::wstring Headphones::get_model_name() const
 {
     return m_model_name;
 }
-std::string Headphones::get_price() const
+std::wstring Headphones::get_price() const
 {
     return m_price;
 }
@@ -64,15 +64,15 @@ EqualizerMode Headphones::get_equalizer_mode() const
     return m_equalizer_mode;
 }
 
-void Headphones::set_producer_name(std::string producer_name)
+void Headphones::set_producer_name(std::wstring producer_name)
 {
     m_producer_name = producer_name;
 }
-void Headphones::set_model_name(std::string model_name)
+void Headphones::set_model_name(std::wstring model_name)
 {
     m_model_name = model_name;
 }
-void Headphones::set_price(std::string price)
+void Headphones::set_price(std::wstring price)
 {
     m_price = price;
 }
@@ -93,15 +93,15 @@ void Headphones::set_equalizer_mode(EqualizerMode equalizer_mode)
     m_equalizer_mode = equalizer_mode;
 }
 
-std::ostream& operator<<(std::ostream& os, const Headphones& headphones)
+std::wostream& operator<<(std::wostream& os, const Headphones& headphones)
 {
-    os << "Список параметров наушников:" << "\n";
-    os << "  Производитель: " << headphones.get_producer_name() << "\n";
-    os << "  Название модели: " << headphones.get_model_name() << "\n";
-    os << "  Цена: " << headphones.get_price() << "\n";
-    os << "  Громкость: " << headphones.get_volume() << "\n";
-    os << "  Шумоподавление: " << (headphones.is_noise_canceling_enabled() ? "Вкл" : "Выкл") << "\n";
-    os << "  Микрофон: " << (headphones.is_microphone_enabled() ? "Вкл" : "Выкл") << "\n";
-    os << "  Режим эквалайзера: " << equalizer_mode_to_string(headphones.get_equalizer_mode()) << "\n";
+    os << L"Список параметров наушников:" << L"\n";
+    os << L"  Производитель: " << headphones.get_producer_name() << L"\n";
+    os << L"  Название модели: " << headphones.get_model_name() << L"\n";
+    os << L"  Цена: " << headphones.get_price() << L"\n";
+    os << L"  Громкость: " << headphones.get_volume() << L"\n";
+    os << L"  Шумоподавление: " << (headphones.is_noise_canceling_enabled() ? L"Вкл" : L"Выкл") << L"\n";
+    os << L"  Микрофон: " << (headphones.is_microphone_enabled() ? L"Вкл" : L"Выкл") << L"\n";
+    os << L"  Режим эквалайзера: " << equalizer_mode_to_string(headphones.get_equalizer_mode()) << L"\n";
     return os;
 }
