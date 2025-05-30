@@ -92,3 +92,16 @@ void Headphones::set_equalizer_mode(EqualizerMode equalizer_mode)
 {
     m_equalizer_mode = equalizer_mode;
 }
+
+std::ostream& operator<<(std::ostream& os, const Headphones& headphones)
+{
+    os << "Список параметров наушников:" << "\n";
+    os << "  Производитель: " << headphones.get_producer_name() << "\n";
+    os << "  Название модели: " << headphones.get_model_name() << "\n";
+    os << "  Цена: " << headphones.get_price() << "\n";
+    os << "  Громкость: " << headphones.get_volume() << "\n";
+    os << "  Шумоподавление: " << (headphones.is_noise_canceling_enabled() ? "Вкл" : "Выкл") << "\n";
+    os << "  Микрофон: " << (headphones.is_microphone_enabled() ? "Вкл" : "Выкл") << "\n";
+    os << "  Режим эквалайзера: " << equalizer_mode_to_string(headphones.get_equalizer_mode()) << "\n";
+    return os;
+}

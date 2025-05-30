@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <iostream>
 
 // Режим эквалайзера
 enum EqualizerMode {
@@ -51,3 +52,5 @@ private:
     bool m_is_microphone_enabled;
     EqualizerMode m_equalizer_mode;
 };
+
+std::ostream& operator<<(std::ostream& os, const Headphones& headphones);
