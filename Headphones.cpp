@@ -4,17 +4,38 @@ std::wstring equalizer_mode_to_string(EqualizerMode equalizer_mode)
 {
     switch (equalizer_mode)
     {
-    case Normal:
+    case EqualizerMode::Normal:
         return L"Обычный";
-    case Bass:
+    case EqualizerMode::Bass:
         return L"Низкие частоты";
-    case Treble:
+    case EqualizerMode::Treble:
         return L"Высокие частоты";
-    case Vocal:
+    case EqualizerMode::Vocal:
         return L"Вокал";
     default:
         return L"[Неизвестный режим эквалайзера]";
     }
+}
+
+std::optional<EqualizerMode> equalizer_mode_from_string(std::wstring string)
+{
+    if (string == L"Обычный")
+    {
+        return EqualizerMode::Normal;
+    }
+    if (string == L"Низкие частоты")
+    {
+        return EqualizerMode::Bass;
+    }
+    if (string == L"Высокие частоты")
+    {
+        return EqualizerMode::Treble;
+    }
+    if (string == L"Вокал")
+    {
+        return EqualizerMode::Vocal;
+    }
+    return std::nullopt;
 }
 
 Headphones::Headphones(

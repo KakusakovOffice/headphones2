@@ -1,6 +1,8 @@
 #pragma once
+#include "JsonValue.hpp"
 #include "Headphones.hpp"
 #include <memory>
+#include <cstdint>
 
 class HeadphonesListNode {
 public:
@@ -21,6 +23,40 @@ private:
     node_ptr m_next;
     node_ptr m_prev;
 };
+
+class HeadphonesListParseError {
+public:
+    class ElementIsNotObject {
+    public:
+        std::size_t index;
+        ElementIsNotObject(std::size_t index) : index(index) {}
+    };
+    class ElementFieldIssue {
+    public:
+        std::size_t index;
+        std::wstring field;
+        std::wstring message;
+        ElementFieldIssue(
+            std::size_t index,
+            std::wstring field,
+            std::wstring message
+        ) :
+            index(index),
+            field(field),
+            message(message)
+        {}
+    };
+
+    using Variant =
+        std::variant<
+            ElementIsNotObject,
+            ElementFieldIssue
+        >;
+    Variant variant;
+    HeadphonesListParseError(Variant variant) : variant(variant) {}
+};
+
+using HeadphonesListParseResult = std::variant<class HeadphonesList, HeadphonesListParseError>;
 
 class HeadphonesList {
 public:
@@ -52,7 +88,7 @@ public:
 
     Iterator head();
     Iterator tail();
-    std::ptrdiff_t count() const;
+    std::uintptr_t count() const;
     bool is_empty() const;
     bool is_not_empty() const;
 
@@ -89,10 +125,13 @@ public:
         return insert_internal(node, next, prev);
     }
     void remove(Iterator it);
+
+    JsonValue::Array to_json();
+    static HeadphonesListParseResult from_json(JsonValue::Array array);
 private:
     HeadphonesListNode::node_ptr m_head;
     HeadphonesListNode::node_ptr m_tail;
-    std::ptrdiff_t m_count;
+    std::uintptr_t m_count;
 
     Iterator insert_internal(
         HeadphonesListNode::node_ptr node,

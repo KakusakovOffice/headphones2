@@ -1,9 +1,9 @@
 #pragma once
 #include <string>
 #include <iostream>
+#include <optional>
 
-// Режим эквалайзера
-enum EqualizerMode {
+enum class EqualizerMode {
     Normal,
     Bass,
     Treble,
@@ -11,6 +11,7 @@ enum EqualizerMode {
 };
 
 std::wstring equalizer_mode_to_string(EqualizerMode equalizer_mode);
+std::optional<EqualizerMode> equalizer_mode_from_string(std::wstring string);
 
 class Headphones {
 public:
