@@ -1,35 +1,35 @@
 #include "HeadphonesList.hpp"
 #include <utility>
 
-Headphones& HeadphonesListNode::value()
+Headphones& HeadphonesList::Node::value()
 {
     return m_value;
 }
-HeadphonesListNode::node_ptr HeadphonesListNode::get_next() const
+HeadphonesList::Node::node_ptr HeadphonesList::Node::get_next() const
 {
     return m_next;
 }
-HeadphonesListNode::node_ptr HeadphonesListNode::get_prev() const
+HeadphonesList::Node::node_ptr HeadphonesList::Node::get_prev() const
 {
     return m_prev;
 }
 
-void HeadphonesListNode::set_next(node_ptr next)
+void HeadphonesList::Node::set_next(node_ptr next)
 {
     m_next = next;
 }
-void HeadphonesListNode::set_prev(node_ptr prev)
+void HeadphonesList::Node::set_prev(node_ptr prev)
 {
     m_prev = prev;
 }
-void HeadphonesListNode::disconnect()
+void HeadphonesList::Node::disconnect()
 {
     set_next(nullptr);
     set_prev(nullptr);
 }
 
 HeadphonesList::Iterator::Iterator(
-    std::shared_ptr<HeadphonesListNode> ptr
+    std::shared_ptr<Node> ptr
 ) :
     m_ptr(ptr)
 {}
@@ -105,14 +105,14 @@ bool HeadphonesList::is_not_empty() const
 
 void HeadphonesList::remove(HeadphonesList::Iterator it)
 {
-    HeadphonesListNode::node_ptr node = *it;
+    Node::node_ptr node = *it;
     if (!node)
     {
         return;
     }
 
-    HeadphonesListNode::node_ptr next = node->get_next();
-    HeadphonesListNode::node_ptr prev = node->get_prev();
+    Node::node_ptr next = node->get_next();
+    Node::node_ptr prev = node->get_prev();
 
     if (next)
     {
@@ -136,120 +136,233 @@ void HeadphonesList::remove(HeadphonesList::Iterator it)
     m_count--;
 }
 
+HeadphonesList::DeserializeError::DeserializeError(
+    std::string message
+) :
+    message(message)
+{}
 
-JsonValue::Array HeadphonesList::to_json()
+HeadphonesList::SerializeError::SerializeError(
+    std::string message
+) :
+    message(message)
+{}
+
+HeadphonesList::SerializeResult HeadphonesList::serialize(std::ostream& os)
 {
-    JsonValue::Array array = JsonValue::Array();
-    for (Iterator it = head();; it++)
-    {
-        const Headphones& headphones = (*it)->value();
-        JsonValue::Object object = JsonValue::Object();
-        object.value.insert({L"Название Производителя", JsonValue(JsonValue::String(headphones.get_producer_name()))});
-        object.value.insert({L"Название Модели", JsonValue(JsonValue::String(headphones.get_model_name()))});
-        object.value.insert({L"Цена", JsonValue(JsonValue::String(headphones.get_price()))});
-        object.value.insert({L"Громкость", JsonValue(JsonValue::Number(headphones.get_volume()))});
-        object.value.insert({L"Шумоподавление", JsonValue(JsonValue::Boolean(headphones.is_noise_canceling_enabled()))});
-        object.value.insert({L"Микрофон", JsonValue(JsonValue::Boolean(headphones.is_microphone_enabled()))});
-        object.value.insert({L"Режим Эквалайзера", JsonValue(JsonValue::String(equalizer_mode_to_string(headphones.get_equalizer_mode())))});
-        array.value.push_back(JsonValue(object));
+    auto delim = "|";
+    auto io_err = "Ошибка ввода-вывода при записи файла";
 
-        if (it == tail()) break;
+    for (Iterator it = head();;it++)
+    {
+        try
+        {
+            auto& value = (*it)->value();
+            os << value.get_producer_name().size() << delim << value.get_producer_name();
+            os << value.get_model_name().size() << delim << value.get_model_name();
+            os << value.get_price().size() << delim << value.get_price();
+            std::string buffer;
+            buffer = std::to_string(value.get_volume());
+            os << buffer.size() << delim << buffer;
+            buffer = std::to_string(value.is_noise_canceling_enabled());
+            os << buffer.size() << delim << buffer;
+            buffer = std::to_string(value.is_microphone_enabled());
+            os << buffer.size() << delim << buffer;
+            buffer = equalizer_mode_to_string(value.get_equalizer_mode());
+            os << buffer.size() << delim << buffer;
+        }
+        catch (std::ios_base::failure e)
+        {
+            return SerializeError(io_err);
+        }
+
+        if (it == tail())
+        {
+            return std::nullopt;
+        }
     }
-    return array;
 }
 
-template<class JsonValueVariant>
-std::variant<
-    JsonValueVariant,
-    HeadphonesListParseError
-> from_json_field_lookup_helper(
-    std::size_t index,
-    const JsonValue::Object& object,
-    const std::wstring& field_name
-)
+std::variant<std::string, HeadphonesList::DeserializeError> HeadphonesList::deserialize_read_section(std::istream& is)
 {
-    auto it = object.value.find(field_name);
-    if (it == object.value.end())
-    {
-        return HeadphonesListParseError(HeadphonesListParseError::ElementFieldIssue(index, field_name, L"Поле отсутствует"));
-    }
+    const auto eof_err = "Файл неожиданно обрывается.";
+    const auto io_err = "Ошибка ввода-вывода при чтении файла.";
+    const auto ill_err = "Файл поврежден или записан некорректно.";
 
-    JsonValue value = it->second;
-    if (!std::holds_alternative<JsonValueVariant>(value.variant))
+    std::string buffer;
+    while (true)
     {
-        return HeadphonesListParseError(HeadphonesListParseError::ElementFieldIssue(index, field_name, L"Поле имеет неверный тип"));
-    }
+        std::istream::int_type ch;
+        try
+        {
+            ch = is.get();
+        }
+        catch (std::ios_base::failure e) {}
 
-    return std::get<JsonValueVariant>(value.variant);
+        if (is.eof())
+        {
+            return DeserializeError(eof_err);
+        }
+        if (!is.good())
+        {
+            return DeserializeError(io_err);
+        }
+        if (ch == '|')
+        {
+            unsigned long long len;
+            try
+            {
+                len = std::stoull(buffer);
+            }
+            catch (std::invalid_argument e)
+            {
+                return DeserializeError(ill_err);
+            }
+            catch (std::out_of_range e)
+            {
+                return DeserializeError(ill_err);
+            }
+            if (sizeof(unsigned long long) > sizeof(std::size_t) && len > (unsigned long long)SIZE_MAX)
+            {
+                return DeserializeError(ill_err);
+            }
+            buffer.resize((std::size_t)len);
+            try
+            {
+                is.read(buffer.data(), len);
+            }
+            catch (std::ios_base::failure e) {}
+
+            if (is.eof())
+            {
+                return DeserializeError(eof_err);
+            }
+            if (!is.good())
+            {
+                return DeserializeError(io_err);
+            }
+
+            return buffer;
+        }
+        buffer += ch;
+    }
 }
 
-HeadphonesListParseResult HeadphonesList::from_json(JsonValue::Array array)
+HeadphonesList::DeserializeResult HeadphonesList::deserialize(std::istream& is)
 {
-    HeadphonesList list = HeadphonesList();
-    for (std::size_t index = 0; index < array.value.size(); index++)
+    const auto io_err = "Ошибка ввода-вывода при чтении файла.";
+    const auto ill_err = "Файл поврежден или записан некорректно.";
+    HeadphonesList list {};
+
+    while (true)
     {
-        JsonValue value = array.value[index];
-        if (!std::holds_alternative<JsonValue::Object>(value.variant))
+        try
         {
-            return HeadphonesListParseError(HeadphonesListParseError::ElementIsNotObject(index));
+            auto ch = is.peek();
+            if (ch == EOF)
+            {
+                return list;
+            }
         }
-        JsonValue::Object object = std::get<JsonValue::Object>(value.variant);
+        catch (std::ios_base::failure e)
+        {
+            return DeserializeError(io_err);
+        }
 
-        auto lookup_result_str = from_json_field_lookup_helper<JsonValue::String>(index, object, L"Название Производителя");
-        if (std::holds_alternative<HeadphonesListParseError>(lookup_result_str))
+        auto result = deserialize_read_section(is);
+        if (std::holds_alternative<HeadphonesList::DeserializeError>(result))
         {
-            return std::get<HeadphonesListParseError>(lookup_result_str);
+            return std::get<HeadphonesList::DeserializeError>(result);
         }
-        std::wstring producer_name = std::get<JsonValue::String>(lookup_result_str).value;
+        std::string producer_name = std::get<std::string>(result);
 
-        lookup_result_str = from_json_field_lookup_helper<JsonValue::String>(index, object, L"Название Модели");
-        if (std::holds_alternative<HeadphonesListParseError>(lookup_result_str))
+        result = deserialize_read_section(is);
+        if (std::holds_alternative<HeadphonesList::DeserializeError>(result))
         {
-            return std::get<HeadphonesListParseError>(lookup_result_str);
+            return std::get<HeadphonesList::DeserializeError>(result);
         }
-        std::wstring model_name = std::get<JsonValue::String>(lookup_result_str).value;
+        std::string model_name = std::get<std::string>(result);
 
-        lookup_result_str = from_json_field_lookup_helper<JsonValue::String>(index, object, L"Цена");
-        if (std::holds_alternative<HeadphonesListParseError>(lookup_result_str))
+        result = deserialize_read_section(is);
+        if (std::holds_alternative<HeadphonesList::DeserializeError>(result))
         {
-            return std::get<HeadphonesListParseError>(lookup_result_str);
+            return std::get<HeadphonesList::DeserializeError>(result);
         }
-        std::wstring price = std::get<JsonValue::String>(lookup_result_str).value;
+        std::string price = std::get<std::string>(result);
 
-        auto lookup_result_num = from_json_field_lookup_helper<JsonValue::Number>(index, object, L"Громкость");
-        if (std::holds_alternative<HeadphonesListParseError>(lookup_result_num))
+        result = deserialize_read_section(is);
+        if (std::holds_alternative<HeadphonesList::DeserializeError>(result))
         {
-            return std::get<HeadphonesListParseError>(lookup_result_num);
+            return std::get<HeadphonesList::DeserializeError>(result);
         }
-        double volume = std::get<JsonValue::Number>(lookup_result_num).value;
+        std::string buffer = std::get<std::string>(result);
+        double volume;
+        try
+        {
+            volume = std::stod(buffer);
+        }
+        catch (std::invalid_argument e)
+        {
+            return DeserializeError(ill_err);
+        }
+        catch (std::out_of_range e)
+        {
+            return DeserializeError(ill_err);
+        }
 
-        auto lookup_result_bool = from_json_field_lookup_helper<JsonValue::Boolean>(index, object, L"Шумоподавление");
-        if (std::holds_alternative<HeadphonesListParseError>(lookup_result_bool))
+        result = deserialize_read_section(is);
+        if (std::holds_alternative<HeadphonesList::DeserializeError>(result))
         {
-            return std::get<HeadphonesListParseError>(lookup_result_bool);
+            return std::get<HeadphonesList::DeserializeError>(result);
         }
-        bool is_noise_canceling_enabled = std::get<JsonValue::Boolean>(lookup_result_bool).value;
+        buffer = std::get<std::string>(result);
+        bool is_noise_canceling_enabled;
+        try
+        {
+            is_noise_canceling_enabled = (bool)std::stoi(buffer);
+        }
+        catch (std::invalid_argument e)
+        {
+            return DeserializeError(ill_err);
+        }
+        catch (std::out_of_range e)
+        {
+            return DeserializeError(ill_err);
+        }
 
-        lookup_result_bool = from_json_field_lookup_helper<JsonValue::Boolean>(index, object, L"Микрофон");
-        if (std::holds_alternative<HeadphonesListParseError>(lookup_result_bool))
+        result = deserialize_read_section(is);
+        if (std::holds_alternative<HeadphonesList::DeserializeError>(result))
         {
-            return std::get<HeadphonesListParseError>(lookup_result_bool);
+            return std::get<HeadphonesList::DeserializeError>(result);
         }
-        bool is_microphone_enabled = std::get<JsonValue::Boolean>(lookup_result_bool).value;
+        buffer = std::get<std::string>(result);
+        bool is_microphone_enabled;
+        try
+        {
+            is_microphone_enabled = (bool)std::stoi(buffer);
+        }
+        catch (std::invalid_argument e)
+        {
+            return DeserializeError(ill_err);
+        }
+        catch (std::out_of_range e)
+        {
+            return DeserializeError(ill_err);
+        }
 
-        lookup_result_str = from_json_field_lookup_helper<JsonValue::String>(index, object, L"Режим Эквалайзера");
-        if (std::holds_alternative<HeadphonesListParseError>(lookup_result_str))
+        result = deserialize_read_section(is);
+        if (std::holds_alternative<HeadphonesList::DeserializeError>(result))
         {
-            return std::get<HeadphonesListParseError>(lookup_result_str);
+            return std::get<HeadphonesList::DeserializeError>(result);
         }
-        auto equalizer_mode_opt = equalizer_mode_from_string(std::get<JsonValue::String>(lookup_result_str).value);
+        buffer = std::get<std::string>(result);
+        EqualizerMode equalizer_mode;
+        auto equalizer_mode_opt = equalizer_mode_from_string(buffer);
         if (!equalizer_mode_opt)
         {
-            return HeadphonesListParseError(
-                HeadphonesListParseError::ElementFieldIssue(index, L"Режим Эквалайзера", L"Неизветсный режим эквалайзера")
-            );
+            return DeserializeError(ill_err);
         }
-        EqualizerMode equalizer_mode = equalizer_mode_opt.value();
+        equalizer_mode = equalizer_mode_opt.value();
 
         list.emplace_after(
             list.tail(),
@@ -262,14 +375,12 @@ HeadphonesListParseResult HeadphonesList::from_json(JsonValue::Array array)
             equalizer_mode
         );
     }
-
-    return list;
 }
 
 HeadphonesList::Iterator HeadphonesList::insert_internal(
-    HeadphonesListNode::node_ptr node,
-    HeadphonesListNode::node_ptr next,
-    HeadphonesListNode::node_ptr prev
+    Node::node_ptr node,
+    Node::node_ptr next,
+    Node::node_ptr prev
 )
 {
     node->set_next(next);

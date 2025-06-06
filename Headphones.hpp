@@ -10,15 +10,15 @@ enum class EqualizerMode {
     Vocal
 };
 
-std::wstring equalizer_mode_to_string(EqualizerMode equalizer_mode);
-std::optional<EqualizerMode> equalizer_mode_from_string(std::wstring string);
+std::string equalizer_mode_to_string(EqualizerMode equalizer_mode);
+std::optional<EqualizerMode> equalizer_mode_from_string(std::string string);
 
 class Headphones {
 public:
     Headphones(
-        std::wstring producer_name,
-        std::wstring model_name,
-        std::wstring price,
+        std::string producer_name,
+        std::string model_name,
+        std::string price,
         double volume,
         bool is_noise_canceling_enabled,
         bool is_microphone_enabled,
@@ -29,29 +29,29 @@ public:
     Headphones(const Headphones& headphones) = delete;
     Headphones& operator=(const Headphones& headphones) = delete;
 
-    std::wstring get_producer_name() const;
-    std::wstring get_model_name() const;
-    std::wstring get_price() const;
+    std::string get_producer_name() const;
+    std::string get_model_name() const;
+    std::string get_price() const;
     double get_volume() const;
     bool is_noise_canceling_enabled() const;
     bool is_microphone_enabled() const;
     EqualizerMode get_equalizer_mode() const;
 
-    void set_producer_name(std::wstring producer_name);
-    void set_model_name(std::wstring model_name);
-    void set_price(std::wstring price);
+    void set_producer_name(std::string producer_name);
+    void set_model_name(std::string model_name);
+    void set_price(std::string price);
     void set_volume(double volume);
     void toggle_noise_canceling();
     void toggle_microphone();
     void set_equalizer_mode(EqualizerMode equalizer_mode);
 private:
-    std::wstring m_producer_name;
-    std::wstring m_model_name;
-    std::wstring m_price;
+    std::string m_producer_name;
+    std::string m_model_name;
+    std::string m_price;
     double m_volume;
     bool m_is_noise_canceling_enabled;
     bool m_is_microphone_enabled;
     EqualizerMode m_equalizer_mode;
 };
 
-std::wostream& operator<<(std::wostream& os, const Headphones& headphones);
+std::ostream& operator<<(std::ostream& os, const Headphones& headphones);

@@ -6,10 +6,8 @@ CONFIG -= qt
 SOURCES += \
         HeadphoneList.cpp \
         Headphones.cpp \
-        JsonValue.cpp \
         main.cpp
 
 HEADERS += \
     Headphones.hpp \
-    HeadphonesList.hpp \
-    JsonValue.hpp
+    HeadphonesList.hpp
