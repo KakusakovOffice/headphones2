@@ -38,6 +38,18 @@ std::optional<EqualizerMode> equalizer_mode_from_string(std::string string)
     return std::nullopt;
 }
 
+Headphones::Headphones() :
+    Headphones(
+        "N/A",
+        "N/A",
+        "N/A",
+        1.0,
+        false,
+        false,
+        EqualizerMode::Normal
+    )
+{}
+
 Headphones::Headphones(
     std::string producer_name,
     std::string model_name,

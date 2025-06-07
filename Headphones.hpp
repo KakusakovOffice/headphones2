@@ -15,6 +15,7 @@ std::optional<EqualizerMode> equalizer_mode_from_string(std::string string);
 
 class Headphones {
 public:
+    Headphones();
     Headphones(
         std::string producer_name,
         std::string model_name,
