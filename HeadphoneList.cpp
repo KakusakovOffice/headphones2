@@ -199,14 +199,15 @@ std::variant<std::string, HeadphonesList::DeserializeError> HeadphonesList::dese
         }
         catch (std::ios_base::failure e) {}
 
+        if (is.bad() || is.fail())
+        {
+            return DeserializeError(io_err);
+        }
         if (is.eof())
         {
             return DeserializeError(eof_err);
         }
-        if (!is.good())
-        {
-            return DeserializeError(io_err);
-        }
+
         if (ch == '|')
         {
             unsigned long long len;
@@ -233,13 +234,13 @@ std::variant<std::string, HeadphonesList::DeserializeError> HeadphonesList::dese
             }
             catch (std::ios_base::failure e) {}
 
+            if (is.bad() || is.fail())
+            {
+                return DeserializeError(io_err);
+            }
             if (is.eof())
             {
                 return DeserializeError(eof_err);
-            }
-            if (!is.good())
-            {
-                return DeserializeError(io_err);
             }
 
             return buffer;
@@ -258,15 +259,17 @@ HeadphonesList::DeserializeResult HeadphonesList::deserialize(std::istream& is)
     {
         try
         {
-            auto ch = is.peek();
-            if (ch == EOF)
-            {
-                return list;
-            }
+            is.peek();
         }
-        catch (std::ios_base::failure e)
+        catch (std::ios_base::failure e) {}
+
+        if (is.bad() || is.fail())
         {
             return DeserializeError(io_err);
+        }
+        if (is.eof())
+        {
+            return list;
         }
 
         auto result = deserialize_read_section(is);
