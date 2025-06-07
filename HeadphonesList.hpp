@@ -3,7 +3,6 @@
 #include <memory>
 #include <cstdint>
 #include <variant>
-#include <optional>
 
 class HeadphonesList {
 public:

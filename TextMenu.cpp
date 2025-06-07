@@ -9,6 +9,7 @@
 #include <codecvt>
 #include <locale>
 #include <windows.h>
+#include <algorithm>
 
 int get_input_digit(int max_inclusive)
 {
@@ -53,9 +54,23 @@ std::string слава_сатане()
     }
 
     std::wstring wstr(wmsg);
-    wstr.pop_back();
+    wstr.resize(used);
+
+    wstr.erase(
+        std::remove_if(
+            wstr.begin(),
+            wstr.end(),
+            [](wchar_t c)
+            {
+                return c == L'\n' || c == L'\r';
+            }
+        ),
+        wstr.end()
+    );
     std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-    return converter.to_bytes(wstr);
+    std::string str = converter.to_bytes(wstr);
+
+    return str;
 }
 
 void generate_new_entry(HeadphonesList::Node& node)
