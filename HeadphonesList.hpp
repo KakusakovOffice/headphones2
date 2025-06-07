@@ -89,6 +89,7 @@ public:
     bool is_empty() const;
     bool is_not_empty() const;
 
+    Iterator index(std::uintptr_t index);
     template<class UnaryPredicate>
     Iterator find_if(Iterator first_inclusive, Iterator last_inclusive, UnaryPredicate p)
     {

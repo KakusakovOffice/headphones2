@@ -171,6 +171,22 @@ bool HeadphonesList::is_not_empty() const
     return !is_empty();
 }
 
+
+HeadphonesList::Iterator HeadphonesList::index(std::uintptr_t index)
+{
+    if (index >= count())
+    {
+        return Iterator(nullptr);
+    }
+
+    auto iter = head();
+    for (; index != 0; index--)
+    {
+        iter = (*iter)->get_next();
+    }
+    return iter;
+}
+
 HeadphonesList::Iterator HeadphonesList::insert_before(Iterator it, Node::node_ptr node)
 {
     auto next = *it;
