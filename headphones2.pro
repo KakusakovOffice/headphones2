@@ -6,8 +6,10 @@ CONFIG -= qt
 SOURCES += \
         HeadphoneList.cpp \
         Headphones.cpp \
-        main.cpp
+        Main.cpp \
+        TextMenu.cpp
 
 HEADERS += \
     Headphones.hpp \
-    HeadphonesList.hpp
+    HeadphonesList.hpp \
+    TextMenu.hpp
