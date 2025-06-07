@@ -108,19 +108,17 @@ public:
     template<typename... Args>
     Iterator emplace_before(Iterator it, Args&&... args)
     {
-        auto next = *it;
-        auto prev = (*it)->get_prev();
         Node::node_ptr node = std::make_shared<Node>(std::forward<Args>(args)...);
-        return insert_internal(node, next, prev);
+        return insert_before(it, node);
     }
     template<typename... Args>
     Iterator emplace_after(Iterator it, Args&&... args)
     {
-        auto prev = *it;
-        auto next = (*it)->get_next();
         Node::node_ptr node = std::make_shared<Node>(std::forward<Args>(args)...);
-        return insert_internal(node, next, prev);
+        return insert_after(it, node);
     }
+    Iterator insert_before(Iterator it, Node::node_ptr node);
+    Iterator insert_after(Iterator it, Node::node_ptr node);
     void remove(Iterator it);
 
     class DeserializeError {

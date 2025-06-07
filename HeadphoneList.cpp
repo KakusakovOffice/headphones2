@@ -171,6 +171,19 @@ bool HeadphonesList::is_not_empty() const
     return !is_empty();
 }
 
+HeadphonesList::Iterator HeadphonesList::insert_before(Iterator it, Node::node_ptr node)
+{
+    auto next = *it;
+    auto prev = (*it)->get_prev();
+    return insert_internal(node, next, prev);
+}
+HeadphonesList::Iterator HeadphonesList::insert_after(Iterator it, Node::node_ptr node)
+{
+    auto prev = *it;
+    auto next = (*it)->get_next();
+    return insert_internal(node, next, prev);
+}
+
 void HeadphonesList::remove(HeadphonesList::Iterator it)
 {
     Node::node_ptr node = *it;
