@@ -218,7 +218,8 @@ HeadphonesList::SerializeError::SerializeError(
 
 HeadphonesList::SerializeResult HeadphonesList::serialize(std::ostream& os) const
 {
-    auto delim = "|";
+    auto end_symb = '^';
+    auto delim = '|';
     auto io_err = "Ошибка ввода-вывода при записи файла";
 
     for (ConstIterator it = chead();;it++)
@@ -238,21 +239,23 @@ HeadphonesList::SerializeResult HeadphonesList::serialize(std::ostream& os) cons
             os << buffer.size() << delim << buffer;
             buffer = equalizer_mode_to_string(value.get_equalizer_mode());
             os << buffer.size() << delim << buffer;
+
+            if (it == ctail())
+            {
+                os << end_symb;
+                return std::nullopt;
+            }
         }
         catch (std::ios_base::failure e)
         {
             return SerializeError(io_err);
-        }
-
-        if (it == ctail())
-        {
-            return std::nullopt;
         }
     }
 }
 
 std::variant<std::string, HeadphonesList::DeserializeError> HeadphonesList::deserialize_read_section(std::istream& is)
 {
+    const auto delim = '|';
     const auto eof_err = "Файл неожиданно обрывается.";
     const auto io_err = "Ошибка ввода-вывода при чтении файла.";
     const auto ill_err = "Файл поврежден или записан некорректно.";
@@ -276,7 +279,7 @@ std::variant<std::string, HeadphonesList::DeserializeError> HeadphonesList::dese
             return DeserializeError(eof_err);
         }
 
-        if (ch == '|')
+        if (ch == delim)
         {
             unsigned long long len;
             try
@@ -319,15 +322,18 @@ std::variant<std::string, HeadphonesList::DeserializeError> HeadphonesList::dese
 
 HeadphonesList::DeserializeResult HeadphonesList::deserialize(std::istream& is)
 {
+    const auto end_symb = '^';
     const auto io_err = "Ошибка ввода-вывода при чтении файла.";
     const auto ill_err = "Файл поврежден или записан некорректно.";
+    const auto eof_err = "Файл неожиданно обрывается.";
     HeadphonesList list {};
 
     while (true)
     {
+        std::istream::int_type ch;
         try
         {
-            is.peek();
+            ch = is.peek();
         }
         catch (std::ios_base::failure e) {}
 
@@ -336,6 +342,11 @@ HeadphonesList::DeserializeResult HeadphonesList::deserialize(std::istream& is)
             return DeserializeError(io_err);
         }
         if (is.eof())
+        {
+            return DeserializeError(eof_err);
+        }
+
+        if (ch == end_symb)
         {
             return list;
         }
