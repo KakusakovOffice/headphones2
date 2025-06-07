@@ -251,15 +251,29 @@ HeadphonesList::SerializeResult HeadphonesList::serialize(std::ostream& os) cons
     auto delim = '|';
     auto io_err = "Ошибка ввода-вывода при записи файла";
 
-    for (ConstIterator it = chead();;it++)
+    if (is_empty())
     {
         try
         {
-            const auto& value = (*it)->cvalue();
+            os << end_symb;
+            return std::monostate();
+        }
+        catch (std::ios_base::failure e)
+        {
+            return SerializeError(io_err);
+        }
+    }
+
+    for (ConstIterator it = chead();;it++)
+    {
+
+        const auto& value = (*it)->cvalue();
+        std::string buffer;
+        try
+        {
             os << value.get_producer_name().size() << delim << value.get_producer_name();
             os << value.get_model_name().size() << delim << value.get_model_name();
             os << value.get_price().size() << delim << value.get_price();
-            std::string buffer;
             buffer = std::to_string(value.get_volume());
             os << buffer.size() << delim << buffer;
             buffer = std::to_string(value.is_noise_canceling_enabled());
