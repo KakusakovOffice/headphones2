@@ -135,7 +135,7 @@ public:
     };
 
     using DeserializeResult = std::variant<HeadphonesList, DeserializeError>;
-    using SerializeResult = std::optional<SerializeError>;
+    using SerializeResult = std::variant<std::monostate, SerializeError>;
 
     SerializeResult serialize(std::ostream& os) const;
     static DeserializeResult deserialize(std::istream& is);

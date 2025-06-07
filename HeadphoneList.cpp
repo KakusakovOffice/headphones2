@@ -243,7 +243,7 @@ HeadphonesList::SerializeResult HeadphonesList::serialize(std::ostream& os) cons
             if (it == ctail())
             {
                 os << end_symb;
-                return std::nullopt;
+                return std::monostate();
             }
         }
         catch (std::ios_base::failure e)
