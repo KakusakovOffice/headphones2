@@ -62,6 +62,7 @@ public:
         using reference         = value_type&;
 
         ConstIterator(value_type ptr);
+        ConstIterator(Iterator iter);
 
         reference operator*();
         pointer operator->();

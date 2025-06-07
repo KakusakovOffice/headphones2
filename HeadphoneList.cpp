@@ -82,9 +82,17 @@ void swap(HeadphonesList::Iterator& a, HeadphonesList::Iterator& b)
 
 HeadphonesList::ConstIterator::ConstIterator(
     HeadphonesList::ConstIterator::value_type ptr
-    ) :
+) :
     m_ptr(ptr)
 {}
+
+
+HeadphonesList::ConstIterator::ConstIterator(
+    HeadphonesList::Iterator iter
+) :
+    m_ptr(*iter)
+{}
+
 HeadphonesList::ConstIterator::reference HeadphonesList::ConstIterator::operator*()
 {
     return m_ptr;
@@ -142,14 +150,13 @@ HeadphonesList::Iterator HeadphonesList::tail()
 {
     return Iterator(m_tail);
 }
-
 HeadphonesList::ConstIterator HeadphonesList::chead() const
 {
-    return ConstIterator(m_head);
+    return ConstIterator((Node::const_node_ptr)m_head);
 }
 HeadphonesList::ConstIterator HeadphonesList::ctail() const
 {
-    return ConstIterator(m_tail);
+    return ConstIterator((Node::const_node_ptr)m_tail);
 }
 std::uintptr_t HeadphonesList::count() const
 {
