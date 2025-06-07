@@ -190,13 +190,13 @@ HeadphonesList::Iterator HeadphonesList::index(std::uintptr_t index)
 HeadphonesList::Iterator HeadphonesList::insert_before(Iterator it, Node::node_ptr node)
 {
     auto next = *it;
-    auto prev = (*it)->get_prev();
+    auto prev = next ? (*it)->get_prev() : nullptr;
     return insert_internal(node, next, prev);
 }
 HeadphonesList::Iterator HeadphonesList::insert_after(Iterator it, Node::node_ptr node)
 {
     auto prev = *it;
-    auto next = (*it)->get_next();
+    auto next = prev ? (*it)->get_next() : nullptr;
     return insert_internal(node, next, prev);
 }
 
