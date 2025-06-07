@@ -5,6 +5,10 @@ Headphones& HeadphonesList::Node::value()
 {
     return m_value;
 }
+const Headphones& HeadphonesList::Node::cvalue() const
+{
+    return m_value;
+}
 HeadphonesList::Node::node_ptr HeadphonesList::Node::get_next() const
 {
     return m_next;
@@ -76,6 +80,54 @@ void swap(HeadphonesList::Iterator& a, HeadphonesList::Iterator& b)
     std::swap(a.m_ptr, b.m_ptr);
 }
 
+HeadphonesList::ConstIterator::ConstIterator(
+    HeadphonesList::ConstIterator::value_type ptr
+    ) :
+    m_ptr(ptr)
+{}
+HeadphonesList::ConstIterator::reference HeadphonesList::ConstIterator::operator*()
+{
+    return m_ptr;
+}
+HeadphonesList::ConstIterator::pointer HeadphonesList::ConstIterator::operator->()
+{
+    return &m_ptr;
+}
+HeadphonesList::ConstIterator& HeadphonesList::ConstIterator::operator++()
+{
+    m_ptr = m_ptr->get_next();
+    return *this;
+}
+HeadphonesList::ConstIterator HeadphonesList::ConstIterator::operator++(int)
+{
+    HeadphonesList::ConstIterator result = *this;
+    ++(*this);
+    return result;
+}
+HeadphonesList::ConstIterator& HeadphonesList::ConstIterator::operator--()
+{
+    m_ptr = m_ptr->get_prev();
+    return *this;
+}
+HeadphonesList::ConstIterator HeadphonesList::ConstIterator::operator--(int)
+{
+    HeadphonesList::ConstIterator result = *this;
+    --(*this);
+    return result;
+}
+bool operator== (const HeadphonesList::ConstIterator& a, const HeadphonesList::ConstIterator& b)
+{
+    return a.m_ptr == b.m_ptr;
+}
+bool operator!= (const HeadphonesList::ConstIterator& a, const HeadphonesList::ConstIterator& b)
+{
+    return !(a == b);
+}
+void swap(HeadphonesList::ConstIterator& a, HeadphonesList::ConstIterator& b)
+{
+    std::swap(a.m_ptr, b.m_ptr);
+}
+
 HeadphonesList::HeadphonesList() :
     m_head(nullptr),
     m_tail(nullptr),
@@ -84,11 +136,20 @@ HeadphonesList::HeadphonesList() :
 
 HeadphonesList::Iterator HeadphonesList::head()
 {
-    return m_head;
+    return Iterator(m_head);
 }
 HeadphonesList::Iterator HeadphonesList::tail()
 {
-    return m_tail;
+    return Iterator(m_tail);
+}
+
+HeadphonesList::ConstIterator HeadphonesList::chead() const
+{
+    return ConstIterator(m_head);
+}
+HeadphonesList::ConstIterator HeadphonesList::ctail() const
+{
+    return ConstIterator(m_tail);
 }
 std::uintptr_t HeadphonesList::count() const
 {
@@ -148,16 +209,16 @@ HeadphonesList::SerializeError::SerializeError(
     message(message)
 {}
 
-HeadphonesList::SerializeResult HeadphonesList::serialize(std::ostream& os)
+HeadphonesList::SerializeResult HeadphonesList::serialize(std::ostream& os) const
 {
     auto delim = "|";
     auto io_err = "Ошибка ввода-вывода при записи файла";
 
-    for (Iterator it = head();;it++)
+    for (ConstIterator it = chead();;it++)
     {
         try
         {
-            auto& value = (*it)->value();
+            const auto& value = (*it)->cvalue();
             os << value.get_producer_name().size() << delim << value.get_producer_name();
             os << value.get_model_name().size() << delim << value.get_model_name();
             os << value.get_price().size() << delim << value.get_price();
@@ -176,7 +237,7 @@ HeadphonesList::SerializeResult HeadphonesList::serialize(std::ostream& os)
             return SerializeError(io_err);
         }
 
-        if (it == tail())
+        if (it == ctail())
         {
             return std::nullopt;
         }

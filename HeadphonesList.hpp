@@ -10,11 +10,13 @@ public:
     class Node {
     public:
         using node_ptr = std::shared_ptr<Node>;
+        using const_node_ptr = std::shared_ptr<const Node>;
 
         template<typename... Args>
         Node(Args&&... args) : m_value(std::forward<Args>(args)...) {}
 
         Headphones& value();
+        const Headphones& cvalue() const;
         node_ptr get_next() const;
         node_ptr get_prev() const;
 
@@ -35,7 +37,7 @@ public:
         using pointer           = value_type*;
         using reference         = value_type&;
 
-        Iterator(Node::node_ptr ptr);
+        Iterator(value_type ptr);
 
         reference operator*();
         pointer operator->();
@@ -48,13 +50,40 @@ public:
 
         friend void swap(Iterator& a, Iterator& b);
     private:
-        Node::node_ptr m_ptr;
+        value_type m_ptr;
+    };
+
+    class ConstIterator {
+    public:
+        using iterator_category = std::bidirectional_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = Node::const_node_ptr;
+        using pointer           = value_type*;
+        using reference         = value_type&;
+
+        ConstIterator(value_type ptr);
+
+        reference operator*();
+        pointer operator->();
+        ConstIterator& operator++();
+        ConstIterator operator++(int);
+        ConstIterator& operator--();
+        ConstIterator operator--(int);
+        friend bool operator== (const ConstIterator& a, const ConstIterator& b);
+        friend bool operator!= (const ConstIterator& a, const ConstIterator& b);
+
+        friend void swap(ConstIterator& a, ConstIterator& b);
+    private:
+        value_type m_ptr;
     };
 
     HeadphonesList();
 
     Iterator head();
     Iterator tail();
+
+    ConstIterator chead() const;
+    ConstIterator ctail() const;
     std::uintptr_t count() const;
     bool is_empty() const;
     bool is_not_empty() const;
@@ -107,7 +136,7 @@ public:
     using DeserializeResult = std::variant<HeadphonesList, DeserializeError>;
     using SerializeResult = std::optional<SerializeError>;
 
-    SerializeResult serialize(std::ostream& os);
+    SerializeResult serialize(std::ostream& os) const;
     static DeserializeResult deserialize(std::istream& is);
 private:
     Node::node_ptr m_head;
